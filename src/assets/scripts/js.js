@@ -1,11 +1,27 @@
+// Liberated from https://gist.github.com/andrei-m/982927
+function _levenshtein(s, t) {
+    if (!s.length) return t.length;
+    if (!t.length) return s.length;
+
+    let m = Math.max(s.length, t.length);
+    let l = Math.min(
+        _levenshtein(s.substr(1), t) + 1,
+        _levenshtein(t.substr(1), s) + 1,
+        _levenshtein(s.substr(1), t.substr(1)) + (s[0] !== t[0] ? 1 : 0)
+    ) + 1;
+
+    return (m - l) / m;
+}
+
 class Engagement {
     static engagements = [];
 
-    constructor(id, date, title, service, link, body) {
+    constructor(id, date, title, service, univ, link, body) {
         this.id = id;
         this.date = date;
         this.title = title;
         this.service = service;
+        this.univ = univ
         this.link = link;
         this.body = body;
     }
@@ -21,6 +37,10 @@ class Engagement {
         return (aDate > bDate) ? (asc ? -1 : 1) : (bDate > aDate) ? (asc ? 1 : -1) : 0;
     }
 
+    matchesUniv(univ) {
+        return _levenshtein(univ.toLowerCase(), this.univ.toLowerCase()) > 0.65;
+    }
+
     #createEngagementDiv() {
         return $(document.createElement('div'))
             .data('engagement-id', this.id)
@@ -34,7 +54,7 @@ class Engagement {
         let card = $(document.createElement('div')).addClass('card');
         let card_header = $(document.createElement('div'))
             .addClass('card-header')
-            .text(this.date);
+            .html(this.date + "<br><small>" + this.univ + "</small>");
         let card_body = $(document.createElement('div'))
             .addClass('card-body');
         let card_title = $(document.createElement('div'))
@@ -88,7 +108,7 @@ function appendEngagement(eng) {
 function sortDate(asc) {
     let list = $('#engagements');
 
-    list.children().sort(function(a, b) {
+    list.children().sort(function (a, b) {
         let aId = parseInt($(a).data('engagement-id'));
         let bId = parseInt($(b).data('engagement-id'));
 
@@ -100,27 +120,60 @@ function sortDate(asc) {
     }).appendTo(list);
 }
 
-// register events
-$(document).ready(function() {
-    $('#filter-menu').find('a').each(function() {
+function filterUniv(univ) {
+    let divs = []
+    let filtered;
+
+    if (univ.trim() === "") {
+        filtered = Engagement.engagements;
+    } else {
+        filtered = Engagement.engagements.filter(function (e) {
+            return e.matchesUniv(univ);
+        });
+    }
+
+    filtered.forEach(function (e) {
+        divs.push(e.createEngagementListing());
+    });
+
+    $('#engagements').html(divs);
+}
+
+// register events sorting
+$(document).ready(function () {
+    $('#filter-menu').find('a').each(function () {
         let asc = $(this).data('dropdown-id') === "asc";
 
-        $(this).click(function() {
+        $(this).click(function () {
             sortDate(asc);
         });
     });
 });
 
-// development testing... replace by data via REST API.
+// register events filtering
 $(document).ready(function() {
+    let typingTimer;
+    let doneTypingInterval = 250;
+
+    $('#university-filter').keyup(function(){
+        clearTimeout(typingTimer);
+
+        typingTimer = setTimeout(function() {
+            filterUniv($('#university-filter').val())
+        }, doneTypingInterval);
+    });
+});
+
+// development testing... replace by data via REST API.
+$(document).ready(function () {
     let eng = new Engagement(
         -1, '2022-03-02', 'title',
-        'Twitter', 'https://www.google.com', 'Hello! This is some engagement.'
+        'Twitter', 'Durham', 'https://www.google.com', 'Hello! This is some engagement.'
     );
 
     let eng2 = new Engagement(
         -1, '2022-03-04', 'title',
-        'Twitter', 'https://www.google.com', 'Hello! This is some engagement.'
+        'Twitter', 'London', 'https://www.google.com', 'Hello! This is some engagement.'
     );
 
     appendEngagement(eng);
