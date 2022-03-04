@@ -1,4 +1,6 @@
 class Engagement {
+    static engagements = [];
+
     constructor(id, date, title, service, link, body) {
         this.id = id;
         this.date = date;
@@ -8,9 +10,20 @@ class Engagement {
         this.body = body;
     }
 
+    static fromId(id) {
+        return Engagement.engagements.find(eng => id === eng.id);
+    }
+
+    static sortDate(a, b, asc) {
+        let aDate = Date.parse(a.date);
+        let bDate = Date.parse(b.date);
+
+        return (aDate > bDate) ? (asc ? -1 : 1) : (bDate > aDate) ? (asc ? 1 : -1) : 0;
+    }
+
     #createEngagementDiv() {
         return $(document.createElement('div'))
-            .attr('engagement-id', this.id)
+            .data('engagement-id', this.id)
             .addClass('col-sm-12')
             .addClass('col-md-6')
             .addClass('mb-3')
@@ -61,11 +74,55 @@ class Engagement {
     }
 }
 
-$(document).ready(function() {
-    for (let i = 0; i < 20; i++) {
-        let eng = new Engagement(i, '3/2/22', 'title', 'Twitter', 'https://www.google.com', 'Hello! This is some engagement.')
-        let listing = eng.createEngagementListing();
-
-        $('#engagements').append(listing);
+function appendEngagement(eng) {
+    if (eng.id === -1) {
+        eng.id = Engagement.engagements.length;
     }
+
+    let listing = eng.createEngagementListing();
+    Engagement.engagements.push(eng);
+
+    $('#engagements').append(listing);
+}
+
+function sortDate(asc) {
+    let list = $('#engagements');
+
+    list.children().sort(function(a, b) {
+        let aId = parseInt($(a).data('engagement-id'));
+        let bId = parseInt($(b).data('engagement-id'));
+
+        return Engagement.sortDate(
+            Engagement.fromId(aId),
+            Engagement.fromId(bId),
+            asc
+        );
+    }).appendTo(list);
+}
+
+// register events
+$(document).ready(function() {
+    $('#filter-menu').find('a').each(function() {
+        let asc = $(this).data('dropdown-id') === "asc";
+
+        $(this).click(function() {
+            sortDate(asc);
+        });
+    });
+});
+
+// development testing... replace by data via REST API.
+$(document).ready(function() {
+    let eng = new Engagement(
+        -1, '2022-03-02', 'title',
+        'Twitter', 'https://www.google.com', 'Hello! This is some engagement.'
+    );
+
+    let eng2 = new Engagement(
+        -1, '2022-03-04', 'title',
+        'Twitter', 'https://www.google.com', 'Hello! This is some engagement.'
+    );
+
+    appendEngagement(eng);
+    appendEngagement(eng2);
 });
