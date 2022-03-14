@@ -1,16 +1,23 @@
 // Liberated from https://gist.github.com/andrei-m/982927
-function _levenshtein(s, t) {
-    if (!s.length) return t.length;
-    if (!t.length) return s.length;
+// function _levenshtein(s, t) {
+//     if (!s.length) return t.length;
+//     if (!t.length) return s.length;
+//
+//     let m = Math.max(s.length, t.length);
+//     let l = Math.min(
+//         _levenshtein(s.substr(1), t) + 1,
+//         _levenshtein(t.substr(1), s) + 1,
+//         _levenshtein(s.substr(1), t.substr(1)) + (s[0] !== t[0] ? 1 : 0)
+//     ) + 1;
+//
+//     return (m - l) / m;
+// }
 
-    let m = Math.max(s.length, t.length);
-    let l = Math.min(
-        _levenshtein(s.substr(1), t) + 1,
-        _levenshtein(t.substr(1), s) + 1,
-        _levenshtein(s.substr(1), t.substr(1)) + (s[0] !== t[0] ? 1 : 0)
-    ) + 1;
+function isIn(s, t) {
+    s = s.toLowerCase()
+    t = t.toLowerCase()
 
-    return (m - l) / m;
+    return t.includes(s);
 }
 
 class EngagementRequest {
@@ -34,7 +41,8 @@ class EngagementRequest {
             success: function(data) {
                 data = data['posts']
                 data = data.map(function(e) {
-                    return new Engagement(e['post_id'], e['posted'], 'Twitter', 'Durham', e['url'], e['content'])
+
+                    return new Engagement(e['post_id'], new Date(e['posted']), e['service'], e['univ'], e['url'], e['content'])
                 })
 
                 callback(data);
@@ -63,14 +71,15 @@ class Engagement {
     }
 
     static sortDate(a, b, asc) {
-        let aDate = Date.parse(a.date);
-        let bDate = Date.parse(b.date);
+        let aDate = a.date;
+        let bDate = b.date;
 
-        return (aDate > bDate) ? (asc ? -1 : 1) : (bDate > aDate) ? (asc ? 1 : -1) : 0;
+        return (aDate > bDate) ? (asc ? 1 : -1) : (bDate > aDate) ? (asc ? -1 : 1) : 0;
     }
 
     matchesUniv(univ) {
-        return _levenshtein(univ.toLowerCase(), this.univ.toLowerCase()) > 0.65;
+        // return _levenshtein(univ.toLowerCase(), this.univ.toLowerCase()) > 0.90;
+        return isIn(univ, this.univ)
     }
 
     #createEngagementDiv() {
@@ -86,7 +95,7 @@ class Engagement {
         let card = $(document.createElement('div')).addClass('card');
         let card_header = $(document.createElement('div'))
             .addClass('card-header')
-            .html(this.date);
+            .html(this.date.toLocaleDateString('en-gb', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }));
         let card_body = $(document.createElement('div'))
             .addClass('card-body');
         let card_title = $(document.createElement('div'))
