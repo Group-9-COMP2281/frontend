@@ -13,13 +13,45 @@ function _levenshtein(s, t) {
     return (m - l) / m;
 }
 
+class EngagementRequest {
+    static url = "localhost:8080";
+
+    constructor(min_id) {
+        this.min_id = min_id;
+    }
+
+    doRequest(callback) {
+        let url = `http://${EngagementRequest.url}/api/engagements`;
+
+        if (this.min_id !== -1) {
+            url += `?min_id=${this.min_id}`
+        }
+
+        $.ajax({
+            url: url,
+            crossDomain: true,
+            crossOrigin: true,
+            success: function(data) {
+                data = data['posts']
+                data = data.map(function(e) {
+                    return new Engagement(e['post_id'], e['posted'], 'Twitter', 'Durham', e['url'], e['content'])
+                })
+
+                callback(data);
+            },
+            error: function(e) {
+                console.log(e);
+            }
+        });
+    }
+}
+
 class Engagement {
     static engagements = [];
 
-    constructor(id, date, title, service, univ, link, body) {
+    constructor(id, date, service, univ, link, body) {
         this.id = id;
         this.date = date;
-        this.title = title;
         this.service = service;
         this.univ = univ
         this.link = link;
@@ -54,12 +86,12 @@ class Engagement {
         let card = $(document.createElement('div')).addClass('card');
         let card_header = $(document.createElement('div'))
             .addClass('card-header')
-            .html(this.date + "<br><small>" + this.univ + "</small>");
+            .html(this.date);
         let card_body = $(document.createElement('div'))
             .addClass('card-body');
         let card_title = $(document.createElement('div'))
             .addClass('card-title')
-            .text(this.title);
+            .text(this.univ);
         let card_subtitle = $(document.createElement('p'))
             .addClass('card-subtitle')
             .addClass('text-muted')
@@ -71,7 +103,7 @@ class Engagement {
             .addClass('card-link')
             .attr('href', this.link)
             .attr('target', '_blank')
-            .text('Go')
+            .text('Visit')
 
         card_body.append(card_title);
         card_body.append(card_subtitle);
@@ -139,6 +171,14 @@ function filterUniv(univ) {
     $('#engagements').html(divs);
 }
 
+$(document).ready(function() {
+    new EngagementRequest(-1).doRequest(function(data) {
+        data.forEach(function(eng) {
+            appendEngagement(eng)
+        })
+    });
+});
+
 // register events sorting
 $(document).ready(function () {
     $('#filter-menu').find('a').each(function () {
@@ -162,20 +202,4 @@ $(document).ready(function() {
             filterUniv($('#university-filter').val())
         }, doneTypingInterval);
     });
-});
-
-// development testing... replace by data via REST API.
-$(document).ready(function () {
-    let eng = new Engagement(
-        -1, '2022-03-02', 'title',
-        'Twitter', 'Durham', 'https://www.google.com', 'Hello! This is some engagement.'
-    );
-
-    let eng2 = new Engagement(
-        -1, '2022-03-04', 'title',
-        'Twitter', 'London', 'https://www.google.com', 'Hello! This is some engagement.'
-    );
-
-    appendEngagement(eng);
-    appendEngagement(eng2);
 });
