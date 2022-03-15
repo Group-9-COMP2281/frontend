@@ -161,6 +161,28 @@ function sortDate(asc) {
     }).appendTo(list);
 }
 
+function sortNames(a, b, asc){
+    if(a < b){
+        return asc ? -1 : 1;
+    }
+    if(a > b){
+        return asc? 1 : -1;
+    }
+    return 0;
+}
+
+function sortUni(asc) {
+    let list = $('#engagements');
+
+    list.children().sort(function (a, b) {
+        let a_uni = $(a).children(":first").children().eq(1).children(":first").text();
+        let b_uni = $(b).children(":first").children().eq(1).children(":first").text();
+
+        return sortNames(a_uni, b_uni, asc);
+
+    }).appendTo(list);
+}
+
 function filterUniv(univ) {
     let divs = []
     let filtered;
@@ -190,12 +212,20 @@ $(document).ready(function() {
 
 // register events sorting
 $(document).ready(function () {
-    $('#filter-menu').find('a').each(function () {
-        let asc = $(this).data('dropdown-id') === "asc";
-
-        $(this).click(function () {
-            sortDate(asc);
-        });
+    $('#sort-menu').find('a').each(function () {
+        if($(this).data('dropdown-id') == "asc" || $(this).data('dropdown-id') == "dsc"){
+            let asc = $(this).data('dropdown-id') === "asc";
+            $(this).click(function () {
+                sortDate(asc);
+            });
+        }
+        else{
+            let asc = $(this).data('dropdown-id') === "uni-a";
+            $(this).click(()=> {
+                sortUni(asc);
+            })
+        }
+        
     });
 });
 

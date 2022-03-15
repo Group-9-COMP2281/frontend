@@ -30,12 +30,14 @@
             </div>
             <div class="col-sm-12 col-lg-6 align-items-end">
                 <div class="dropdown">
-                    <button class="btn btn-success dropdown-toggle" type="button" id="filter-menu-btn" data-bs-toggle="dropdown" aria-expanded="false">
+                    <button class="btn btn-success dropdown-toggle" type="button" id="sort-menu-btn" data-bs-toggle="dropdown" aria-expanded="false">
                         Sort by
                     </button>
-                    <ul class="dropdown-menu" id="filter-menu" aria-labelledby="filter-menu-btn">
-                        <li><a class="dropdown-item" href="#" data-dropdown-id="asc">Ascending (oldest first)</a></li>
-                        <li><a class="dropdown-item" href="#" data-dropdown-id="dsc">Descending (newest first)</a></li>
+                    <ul class="dropdown-menu" id="sort-menu" aria-labelledby="sort-menu-btn">
+                        <li><a class="dropdown-item" href="#" data-dropdown-id="asc" id="asc">Date (oldest first)</a></li>
+                        <li><a class="dropdown-item" href="#" data-dropdown-id="dsc">Date (newest first)</a></li>
+                        <li><a class="dropdown-item" href="#" data-dropdown-id="uni-a">University (Ascending)</a></li>
+                        <li><a class="dropdown-item" href="#" data-dropdown-id="uni-d">University (Descending)</a></li>
                     </ul>
                 </div>
             </div>
