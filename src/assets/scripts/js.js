@@ -203,17 +203,28 @@ function filterUniv(univ) {
 }
 
 $(document).ready(function() {
-    new EngagementRequest(-1).doRequest(function(data) {
-        data.forEach(function(eng) {
-            appendEngagement(eng)
+    let max_id = -2;
+
+    let f = function() {
+        new EngagementRequest(max_id+1).doRequest(function(data) {
+            data.forEach(function(eng) {
+                if (eng.id > max_id) {
+                    max_id = eng.id;
+                }
+
+                appendEngagement(eng)
+            })
         })
-    });
+    }
+
+    setInterval(f, 120000);
+    f()
 });
 
 // register events sorting
 $(document).ready(function () {
     $('#sort-menu').find('a').each(function () {
-        if($(this).data('dropdown-id') == "asc" || $(this).data('dropdown-id') == "dsc"){
+        if($(this).data('dropdown-id') === "asc" || $(this).data('dropdown-id') === "dsc"){
             let asc = $(this).data('dropdown-id') === "asc";
             $(this).click(function () {
                 sortDate(asc);
